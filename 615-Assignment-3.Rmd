@@ -1,7 +1,7 @@
 ---
 title: "615_Assignment3_Honey"
-author: "Dave Anderson"
-date: "October 1, 2018"
+author: "Dave Anderson, Sky Liu, Tingrui Huang, Xiang Xu"
+date: "October 3, 2018"
 output: pdf_document
 ---
 
@@ -11,11 +11,14 @@ library(tidyverse)
 ```
 
 ```{r}
+#Loading data files
 Honey <- read_csv("Honey.csv")
 Deadout <- read_csv("Deadout.csv")
 Price_per_lb <- read_csv("Price per lb.csv")
 Production_per_Colony <- read_csv("Production per Colony.csv")
-
+Honey_value_annual <- read_csv('Honey_value.csv')
+CPI <- read_csv('1987_2017CPI.csv')
+honey_loss_dt <- read.csv('Honey_Loss_6_States.csv')
 ```
 
 ```{r}
@@ -24,6 +27,7 @@ Honey <- dplyr::select(Honey,Year,State,Value)
 Deadout <- dplyr::select(Deadout,Year,Period,State,Value) 
 Price_per_lb <- dplyr::select(Price_per_lb,Year,State,Value)
 Production_per_Colony <- dplyr::select(Production_per_Colony,Year,State,Value)
+Honey_value_annual <- dplyr::select(Honey_value_annual,Year,Value)
 
 
 
@@ -40,34 +44,90 @@ Honey_by_State <- full_join(Honey_by_State, Colony_production, by = "State") %>%
   mutate(Colonies = Average_production*2000/Average_per_colony) %>% 
   mutate(Loss_per_colony = Average_loss/Colonies) 
 
+# pick 6 top states with highest production and complete data
+Honey_State <- Honey %>%  group_by(State) 
+unique(Honey$State)
+Honey_sixstate <- Honey_State %>%
+  filter(State %in% c("CALIFORNIA", "FLORIDA" ,"SOUTH DAKOTA", "NORTH DAKOTA","MONTANA", "MINNESOTA")) %>%
+  arrange(State, Year)
+
+#Honey lost in 6 states
+#Sum by year (Since we only have the data in 1st and 2nd quarter in 2018, we will exclude the data in 2018)
+honey_loss_dt$Value <- as.numeric(gsub(",","",honey_loss_dt$Value))
+honey_2017 <- honey_loss_dt %>% select(Year,State,Value) %>% filter(Year==2017) %>% group_by(Year,State) %>% summarise(total=sum(Value))
+honey_2016 <- honey_loss_dt %>% select(Year,State,Value) %>% filter(Year==2016) %>% group_by(Year,State) %>% summarise(total=sum(Value))
+honey_2015 <- honey_loss_dt %>% select(Year,State,Value) %>% filter(Year==2015) %>% group_by(Year,State) %>% summarise(total=sum(Value))
+# Total loss from 2015-2017
+honey_total <- rbind(honey_2017,honey_2016,honey_2015)
+
+
+#Adjust the annual honey value (price received) by 1987 inflation rate.
+baseCPI <- rep(113.6, 21)
+adjusted_Price <- as.data.frame(Honey_value_annual$Value * (CPI$CPI / baseCPI))
+Honey_value_annual <- cbind(Honey_value_annual,adjusted_Price)
+names(Honey_value_annual) <- c('Year','Value','adjValue')
+#Add annual productivity
+Annual_production <- filter(Honey, State != "US TOTAL") %>% group_by(Year)  %>% summarise(Average_production = mean(Value)/2000)  
+Annual_production <- arrange(Annual_production, desc(Year))
+Honey_value_annual <- cbind(Honey_value_annual,Annual_production$Average_production)
+names(Honey_value_annual) <- c('Year','Value','adjValue','annualProd')
+
+```
+
+
+
+
+
+```{r}
+#Change of Honey annual value and productivity from 1987-2017
+ggplot(data = Honey_value_annual, aes(x = Year)) + 
+  geom_line(aes(y = adjValue, colour = "adjValue"))+
+  geom_line(aes(y = annualProd, colour = "annualProd"))  +
+  ggtitle("Author: Sky Liu \n Change of Honey annual value and productivity from 1987-2017")+
+  scale_y_continuous(sec.axis = sec_axis(~.*5, name = "Annual productivity [%]"))+
+  scale_colour_manual(values = c("blue", "red"))+
+  labs(y = "Adjusted Value [$]",
+                x = "Year")
 
 #Scatterplot to show relationship between productivity and loss by state.
 #Colored to show overall high-producing states.
 ggplot(data = Honey_by_State, mapping = aes(Average_per_colony,Loss_per_colony))+
-  geom_point(aes(color = Average_production),size = 3)
+  geom_point(aes(color = Average_production),size = 3)+
+  ggtitle("Author: Dave Anderson \n Relationship b/t productivity and loss by state")
 
 
 #Total Production by state, largest six states indicated in red. 
 ggplot(data = Honey_by_State, mapping = aes(State, Average_production, fill=ifelse(Average_production > 5000,"A", "B")))+
   geom_col()+
   scale_fill_manual(guide=FALSE, values=c("red", "black"))+
-  theme(axis.text.x = element_text(color = ifelse(Honey_by_State$Average_production > 5000, "red", "black"), angle = 75, hjust = 1))
+  theme(axis.text.x = element_text(color = ifelse(Honey_by_State$Average_production > 5000, "red", "black"), angle = 75, hjust = 1))+
+  ggtitle("Author: Dave Anderson \n Production by state")
 
 
 #Display of prices per lb. by state. Top six producing states still in red to show their low prices. 
 ggplot(data = Honey_by_State, mapping = aes(State ,Average_price, fill = ifelse(Average_production > 5000, "A", "B")))+
   geom_col()+
   scale_fill_manual(guide=FALSE, values=c("red", "black"))+
-  theme(axis.text.x = element_text(color = ifelse(Honey_by_State$Average_production > 5000, "red", "black"), angle = 75, hjust = 1))
+  theme(axis.text.x = element_text(color = ifelse(Honey_by_State$Average_production > 5000, "red", "black"), angle = 75, hjust = 1))+
+  ggtitle("Author: Dave Anderson \n Prices per lb. by state")
+
+#trend of annual value of 6 top productivity states 
+ggplot(Honey_sixstate, aes(x=Year, y=Value ,color = State)) +
+  geom_line(size = 1) +
+  ggtitle("Author: Xiang XU \nValue year trend by state")
+# annual honey lost trend of 6 top productivity states from 2015-2017
+ggplot(honey_total, aes(x=Year, y=total, color=State))+geom_line()+labs(title="Tingrui Huang")
 
 #Display of production vs. loss per colony with out top states labeled. 
 ggplot(data = Honey_by_State, mapping = aes(Average_production,Loss_per_colony, label = State))+
-  geom_point() + geom_text(aes(label = ifelse(Average_production > 5000,as.character(State),'')),vjust = 1.5,hjust = 1)
+  geom_point() + geom_text(aes(label = ifelse(Average_production > 5000,as.character(State),'')),vjust = 1.5,hjust = 1)+
+   ggtitle("Author: Dave Anderson \n Production vs. loss per colony with out top states labeled")
 
 #Display of colonies lost by year and peiod. 
 loss_by_year <- Deadout %>% filter(State == "US TOTAL") %>% group_by(Year)
 ggplot(data = loss_by_year)+
-  geom_col(mapping = aes(x = Year, y = Value, fill = Period))
+  geom_col(mapping = aes(x = Year, y = Value, fill = Period))+
+  ggtitle("Author: Dave Anderson \n Colonies lost by year and peiod")
 
 
 
