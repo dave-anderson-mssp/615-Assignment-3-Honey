@@ -115,8 +115,10 @@ ggplot(data = Honey_by_State, mapping = aes(State ,Average_price, fill = ifelse(
 ggplot(Honey_sixstate, aes(x=Year, y=Value ,color = State)) +
   geom_line(size = 1) +
   ggtitle("Author: Xiang XU \nValue year trend by state")
+
 # annual honey lost trend of 6 top productivity states from 2015-2017
-ggplot(honey_total, aes(x=Year, y=total, color=State))+geom_line()+labs(title="Tingrui Huang")
+ggplot(honey_total, aes(x=Year, y=total, color=State))+geom_line()+
+  ggtitle("Author: Tingrui Huang \n Annual honey lost trend of 6 top productivity states from 2015-2017")
 
 #Display of production vs. loss per colony with out top states labeled. 
 ggplot(data = Honey_by_State, mapping = aes(Average_production,Loss_per_colony, label = State))+
@@ -139,3 +141,14 @@ ggplot(data = loss_by_year)+
 #Looking at prices, we see that the big producers are also among cheapest states.
 
 #The two large states have high rates of deadout colonies. The 4 big producers from the midwest have low loss rates. 
+
+*We pick six states, which have 31 years data, CALIFORNIA, FLORIDA , SOUTH DAKOTA, NORTH DAKOTA, MONTANA and MINNESOTA. Accordng to the graph above, we can see the trend about annual value of each state for 31 years.*
+
+*Clearly, NORTH DAKOTA is the only state among these six states, whose yearly value has a upward trend in last 31 years. The other five states decline volatility in year-values.*
+
+#As we can see in the graph, California has the highest loss all the time, but there was a decrease
+#from 2016 to 2017. Florida and North Dakota has very close loss in 2015 and the begining of 2016, 
+#however, North Dakota has decreased its loss by 35% from 2016 to 2017 and it now has lower loss
+#than Florida. We won't be suprised if there is an decrease in the Price of honey and increase in the
+#Production of honey in North Dakota in the year of 2016-2017. The other three states have steady 
+#low loss comparing with California, Florida and North Dakota.
