@@ -8,6 +8,7 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(dplyr)
 ```
 
 ```{r}
@@ -50,6 +51,14 @@ unique(Honey$State)
 Honey_sixstate <- Honey_State %>%
   filter(State %in% c("CALIFORNIA", "FLORIDA" ,"SOUTH DAKOTA", "NORTH DAKOTA","MONTANA", "MINNESOTA")) %>%
   arrange(State, Year)
+
+# pick the 6 top states mentioned above to analyze the price trend
+Price_state <- Price_per_lb %>%  group_by(State) 
+unique(Price_state$State)
+Price_sixstate <- Price_state %>%
+  filter(State %in% c("CALIFORNIA", "FLORIDA" ,"SOUTH DAKOTA", "NORTH DAKOTA","MONTANA", "MINNESOTA")) %>%
+  arrange(State, Year)
+
 
 #Honey lost in 6 states
 #Sum by year (Since we only have the data in 1st and 2nd quarter in 2018, we will exclude the data in 2018)
@@ -115,6 +124,12 @@ ggplot(data = Honey_by_State, mapping = aes(State ,Average_price, fill = ifelse(
 ggplot(Honey_sixstate, aes(x=Year, y=Value ,color = State)) +
   geom_line(size = 1) +
   ggtitle("Author: Xiang XU \nValue year trend by state")
+
+#trend of annual value of 6 top productivity states 
+ggplot(Price_sixstate, aes(x=Year, y=Value ,color = State)) +
+  geom_line(size = 1) +
+  ggtitle("Author: Xiang XU \nValue year trend by state")
+
 
 # annual honey lost trend of 6 top productivity states from 2015-2017
 ggplot(honey_total, aes(x=Year, y=total, color=State))+geom_line()+
