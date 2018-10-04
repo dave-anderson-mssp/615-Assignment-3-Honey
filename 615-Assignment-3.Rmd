@@ -157,9 +157,7 @@ ggplot(data = loss_by_year)+
 
 #The two large states have high rates of deadout colonies. The 4 big producers from the midwest have low loss rates. 
 
-*We pick six states, which have 31 years data, CALIFORNIA, FLORIDA , SOUTH DAKOTA, NORTH DAKOTA, MONTANA and MINNESOTA. Accordng to the graph above, we can see the trend about annual value of each state for 31 years.*
 
-*Clearly, NORTH DAKOTA is the only state among these six states, whose yearly value has a upward trend in last 31 years. The other five states decline volatility in year-values.*
 
 #As we can see in the graph, California has the highest loss all the time, but there was a decrease
 #from 2016 to 2017. Florida and North Dakota has very close loss in 2015 and the begining of 2016, 
